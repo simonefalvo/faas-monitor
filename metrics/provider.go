@@ -1,5 +1,5 @@
 package metrics
 
 type Provider interface {
-	FunctionReplicas(functionName string) int
+	FunctionReplicas(functionName string) (int, error)
 }

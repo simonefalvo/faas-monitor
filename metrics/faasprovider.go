@@ -12,6 +12,6 @@ func (*FaasProvider) Functions() string {
 	return ""
 }
 
-func (*FaasProvider) FunctionReplicas(functionName string) int {
+func (*FaasProvider) FunctionReplicas(functionName string) (int, error) {
 	return prometheus.FunctionReplicas(functionName)
 }

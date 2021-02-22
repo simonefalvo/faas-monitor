@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/smvfal/faas-monitor/metrics"
+	"log"
 	"time"
 )
 
@@ -11,7 +12,11 @@ func main() {
 	p = &metrics.FaasProvider{}
 
 	for {
-		fmt.Println(p.FunctionReplicas("nodeinfo"))
-		time.Sleep(10 * time.Duration(time.Second))
+		replicas, err := p.FunctionReplicas("nodeinfo")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(replicas)
+		time.Sleep(10 * time.Second)
 	}
 }

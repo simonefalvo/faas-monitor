@@ -2,6 +2,7 @@ package prometheus
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -24,14 +25,19 @@ func init() {
 		Address: prometheusUrl,
 	})
 	if err != nil {
-		fmt.Printf("Error creating client: %v\n", err)
-		os.Exit(1)
+		log.Fatalf("Error creating client: %v\n", err)
 	}
 
 	v1api = v1.NewAPI(client)
 }
 
-func FunctionReplicas(functionName string) int {
+func FunctionReplicas(functionName string) (int, error) {
+
+	if len(functionName) == 0 {
+		msg := "Empty function name\n"
+		return 0, errors.New(msg)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -39,23 +45,29 @@ func FunctionReplicas(functionName string) int {
 
 	result, warnings, err := v1api.Query(ctx, query, time.Now())
 	if err != nil {
-
-		fmt.Printf("Error querying Prometheus: %v\n", err)
-		os.Exit(1)
+		return 0, err
 	}
 	if len(warnings) > 0 {
-		fmt.Printf("Warnings: %v\n", warnings)
+		log.Printf("Warnings: %v\n\n", warnings)
 	}
-	return int(extractValue(result.String()))
+	stringResult := result.String()
+	if len(stringResult) == 0 {
+		msg := fmt.Sprintf("Function %v not found in openfaas-fn namespace.\n", functionName)
+		return 0, errors.New(msg)
+	}
+
+	replicas, err := extractValue(stringResult)
+	return int(replicas), err
 }
 
-func extractValue(queryResult string) float64 {
+func extractValue(queryResult string) (float64, error) {
 	re := regexp.MustCompile(`=> (.*?) @`)
 	rs := re.FindStringSubmatch(queryResult)
 	stringVal := rs[1]
 	val, err := strconv.ParseFloat(stringVal, 64)
 	if err != nil {
-		log.Fatalf("Unable to convert string %v to float\n", stringVal)
+		msg := fmt.Sprintf("Unable to convert string %v to float\n", stringVal)
+		return 0, errors.New(msg)
 	}
-	return val
+	return val, nil
 }
