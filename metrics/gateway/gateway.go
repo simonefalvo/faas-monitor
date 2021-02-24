@@ -19,7 +19,7 @@ import (
 var (
 	user       string
 	password   string
-	gatewayUrl = os.Getenv("GATEWAY_URL")
+	gatewayUrl string
 )
 
 type function struct {
@@ -27,8 +27,9 @@ type function struct {
 }
 
 func init() {
-
-	if len(gatewayUrl) == 0 {
+	var ok bool
+	gatewayUrl, ok = os.LookupEnv("GATEWAY_URL")
+	if !ok {
 		log.Fatal("$GATEWAY_URL not set\n")
 	}
 

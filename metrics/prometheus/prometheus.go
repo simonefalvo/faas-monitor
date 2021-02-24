@@ -17,8 +17,8 @@ import (
 var v1api v1.API
 
 func init() {
-	prometheusUrl := os.Getenv("PROMETHEUS_URL")
-	if prometheusUrl == "" {
+	prometheusUrl, ok := os.LookupEnv("PROMETHEUS_URL")
+	if !ok {
 		log.Fatal("$PROMETHEUS_URL not set")
 	}
 	client, err := api.NewClient(api.Config{
