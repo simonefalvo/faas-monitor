@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faas-monitor
+  labels:
+    app: faas-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faas-monitor
+  template:
+    metadata:
+      labels:
+        app: faas-monitor
+    spec:
+      serviceAccountName: faas-monitor
+      containers:
+      - name: faas-monitor
+        image: smvfal/faas-monitor:latest
+        env:
+          - name: PROMETHEUS_URL
+            value: "http://prometheus.openfaas:9090"
+          - name: GATEWAY_URL
+            value: "http://gateway.openfaas:8080"

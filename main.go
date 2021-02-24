@@ -12,11 +12,14 @@ func main() {
 	p = &metrics.FaasProvider{}
 
 	for {
-		replicas, err := p.FunctionReplicas("nodeinfo")
-		if err != nil {
-			log.Fatal(err)
+		functions := p.Functions()
+		for _, function := range functions {
+			replicas, err := p.FunctionReplicas(function)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s: %d replicas\n", function, replicas)
 		}
-		fmt.Println(replicas)
 		time.Sleep(10 * time.Second)
 	}
 }
