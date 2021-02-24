@@ -24,3 +24,7 @@ spec:
             value: "http://prometheus.openfaas:9090"
           - name: GATEWAY_URL
             value: "http://gateway.openfaas:8080"
+          - name: NATS_URL
+            value: "http://nats.openfaas:4222"
+          - name: NATS_SUBJECT
+            value: "metrics"
