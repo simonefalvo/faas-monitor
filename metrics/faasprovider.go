@@ -5,10 +5,9 @@ import (
 	"github.com/smvfal/faas-monitor/metrics/prometheus"
 )
 
-type FaasProvider struct {
-}
+type FaasProvider struct{}
 
-func (*FaasProvider) Functions() []string {
+func (*FaasProvider) Functions() ([]string, error) {
 	return gateway.Functions()
 }
 

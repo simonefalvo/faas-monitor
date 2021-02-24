@@ -32,69 +32,82 @@ func init() {
 		log.Fatal("$GATEWAY_URL not set\n")
 	}
 
-	// get gateway authorization credentials
-	authSecret := secret("basic-auth", "openfaas")
+	// get and set gateway authorization credentials
+	authSecret, err := secret("basic-auth", "openfaas")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 	data := authSecret.Data
 	user = string(data["basic-auth-user"])
 	password = string(data["basic-auth-password"])
 }
 
-func Functions() []string {
-	var functions []function
+func Functions() ([]string, error) {
+
+	// make http api request
 	url := gatewayUrl + "/system/functions"
-	method := "GET"
-	resBody := apiRequest(url, method, nil)
-	err := json.Unmarshal(resBody, &functions)
+	resBody, err := apiRequest(url, "GET", nil)
 	if err != nil {
-		fmt.Println("error:", err)
+		return nil, err
+	}
+
+	// unmarshal the request body
+	var functions []function
+	err = json.Unmarshal(resBody, &functions)
+	if err != nil {
+		return nil, err
 	}
 
 	var fnames []string
 	for _, f := range functions {
 		fnames = append(fnames, f.Name)
 	}
-	return fnames
+
+	return fnames, nil
 }
 
-func apiRequest(url, method string, body io.Reader) []byte {
+func apiRequest(url, method string, body io.Reader) ([]byte, error) {
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
 	req.SetBasicAuth(user, password)
 	response, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
 	defer response.Body.Close()
 	resBody, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
 	fmt.Printf("response body:\n%s\n", resBody)
-	return resBody
+	return resBody, nil
 }
 
-func secret(name, namespace string) *v1.Secret {
+func secret(name, namespace string) (*v1.Secret, error) {
+
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
+
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
+	// retrieve the secret
 	secrets := clientset.CoreV1().Secrets(namespace)
 	secret, err := secrets.Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
-	return secret
+	return secret, nil
 }

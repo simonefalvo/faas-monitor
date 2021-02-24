@@ -18,6 +18,7 @@ spec:
       containers:
       - name: faas-monitor
         image: smvfal/faas-monitor:latest
+        imagePullPolicy: Always
         env:
           - name: PROMETHEUS_URL
             value: "http://prometheus.openfaas:9090"
