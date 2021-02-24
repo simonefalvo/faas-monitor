@@ -1,4 +1,4 @@
-faas-monitor
+bin/
 kubernetes/
 test_local/
 vendor/
