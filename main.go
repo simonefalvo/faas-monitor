@@ -10,8 +10,10 @@ import (
 )
 
 type function struct {
-	Name     string `json:"name"`
-	Replicas int    `json:"replicas"`
+	Name     string           `json:"name"`
+	Replicas int              `json:"replicas"`
+	Cpu      map[string]int64 `json:"cpu"`
+	Mem      map[string]int64 `json:"mem"`
 }
 
 func main() {
@@ -29,23 +31,37 @@ func main() {
 		for _, fname := range functions {
 
 			f := function{Name: fname}
+
 			f.Replicas, err = p.FunctionReplicas(f.Name)
 			if err != nil {
-				log.Println(err.Error())
+				log.Printf("WARNING: %s", err.Error())
 			}
+			log.Printf("%s replicas: %d\n", f.Name, f.Replicas)
 
-			fmt.Printf("%s: %d replicas\n", f.Name, f.Replicas)
+			f.Cpu, f.Mem, err = p.Top(f.Name)
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+			log.Printf("%s CPU usage: %s", f.Name, sPrintMap(f.Cpu))
+			log.Printf("%s memory usage: %s", f.Name, sPrintMap(f.Mem))
 
 			// marshal to json
 			fjson, err := json.Marshal(f)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-			fmt.Println(string(fjson))
 
 			nats.Publish(fjson)
 		}
 
 		time.Sleep(10 * time.Second)
 	}
+}
+
+func sPrintMap(m map[string]int64) string {
+	s := ""
+	for key, val := range m {
+		s += fmt.Sprintf("\n%s: %d", key, val)
+	}
+	return s
 }

@@ -21,4 +21,4 @@ build:
 	go build -o bin/${BINARY_NAME}
 
 clean:
-	rm -r vendor/ bin/
+	rm -rf vendor/ bin/

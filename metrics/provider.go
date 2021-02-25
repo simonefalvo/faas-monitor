@@ -7,4 +7,7 @@ type Provider interface {
 
 	// get the function replicas' number
 	FunctionReplicas(functionName string) (int, error)
+
+	// get function's current resources usage for each replica
+	Top(functionName string) (map[string]int64, map[string]int64, error)
 }

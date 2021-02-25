@@ -8,8 +8,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   namespace: default
-  name: secrets-reader
+  name: secret-pod-reader
 rules:
+ - apiGroups: ["metrics.k8s.io"]
+   resources: ["pods"]
+   verbs: ["get", "watch", "list"]
  - apiGroups: [""] # "" indicates the core API group
    resources: ["secrets"]
    verbs: ["get", "watch", "list"]
@@ -17,12 +20,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: secrets-read-access
+  name: faas-clusterbinding
 subjects:
 - kind: ServiceAccount
   name: faas-monitor
   namespace: default 
 roleRef:
   kind: ClusterRole
-  name: secrets-reader
+  name: secret-pod-reader
   apiGroup: rbac.authorization.k8s.io
