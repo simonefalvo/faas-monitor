@@ -14,7 +14,7 @@ rules:
    resources: ["pods"]
    verbs: ["get", "watch", "list"]
  - apiGroups: [""] # "" indicates the core API group
-   resources: ["secrets"]
+   resources: ["secrets", "pods", "pods/log"]
    verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

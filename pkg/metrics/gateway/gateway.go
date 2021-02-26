@@ -3,10 +3,8 @@ package gateway
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -27,17 +25,33 @@ type function struct {
 }
 
 func init() {
+
 	var ok bool
 	gatewayUrl, ok = os.LookupEnv("GATEWAY_URL")
 	if !ok {
 		log.Fatal("$GATEWAY_URL not set\n")
 	}
 
-	// get and set gateway authorization credentials
-	authSecret, err := secret("basic-auth", "openfaas")
+	// creates the in-cluster config
+	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// retrieve the secret
+	secrets := clientset.CoreV1().Secrets("openfaas")
+	authSecret, err := secrets.Get(context.TODO(), "basic-auth", metav1.GetOptions{})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	// set gateway authorization credentials
 	data := authSecret.Data
 	user = string(data["basic-auth-user"])
 	password = string(data["basic-auth-password"])
@@ -68,6 +82,7 @@ func Functions() ([]string, error) {
 }
 
 func apiRequest(url, method string, body io.Reader) ([]byte, error) {
+
 	client := &http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -85,30 +100,5 @@ func apiRequest(url, method string, body io.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("response body:\n%s\n", resBody)
 	return resBody, nil
-}
-
-func secret(name, namespace string) (*v1.Secret, error) {
-
-	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return nil, err
-	}
-
-	// retrieve the secret
-	secrets := clientset.CoreV1().Secrets(namespace)
-	secret, err := secrets.Get(context.TODO(), name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	return secret, nil
 }

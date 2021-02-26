@@ -16,11 +16,11 @@ func init() {
 	var ok bool
 	natsUrl, ok = os.LookupEnv("NATS_URL")
 	if !ok {
-		log.Fatal("$NATS_URL not set\n")
+		log.Fatal("$NATS_URL not set")
 	}
 	subject, ok = os.LookupEnv("NATS_SUBJECT")
 	if !ok {
-		log.Fatal("$NATS_SUBJECT not set\n")
+		log.Fatal("$NATS_SUBJECT not set")
 	}
 }
 
@@ -33,7 +33,7 @@ func Publish(msg []byte) {
 	}
 	defer nc.Close()
 
-	log.Printf("Publishing %d bytes to: %q\n", len(msg), subject)
+	log.Printf("Publishing %d bytes to: %q", len(msg), subject)
 
 	err = nc.Publish(subject, msg)
 	if err != nil {

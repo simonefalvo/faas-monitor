@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/smvfal/faas-monitor/pkg/util"
 )
 
 var v1api v1.API
@@ -52,22 +51,10 @@ func FunctionReplicas(functionName string) (int, error) {
 	}
 	stringResult := result.String()
 	if len(stringResult) == 0 {
-		msg := fmt.Sprintf("Function %v not found in openfaas-fn namespace.\n", functionName)
+		msg := fmt.Sprintf("Function %v not found in openfaas-fn namespace.", functionName)
 		return 0, errors.New(msg)
 	}
 
-	replicas, err := extractValue(stringResult)
+	replicas, err := util.ExtractValueBetween(stringResult, `=> `, ` @`)
 	return int(replicas), err
-}
-
-func extractValue(queryResult string) (float64, error) {
-	re := regexp.MustCompile(`=> (.*?) @`)
-	rs := re.FindStringSubmatch(queryResult)
-	stringVal := rs[1]
-	val, err := strconv.ParseFloat(stringVal, 64)
-	if err != nil {
-		msg := fmt.Sprintf("Unable to convert string %v to float\n", stringVal)
-		return 0, errors.New(msg)
-	}
-	return val, nil
 }

@@ -20,6 +20,8 @@ spec:
         image: smvfal/faas-monitor:latest
         imagePullPolicy: Always
         env:
+          - name: SCRAPE_PERIOD
+            value: "20"
           - name: PROMETHEUS_URL
             value: "http://prometheus.openfaas:9090"
           - name: GATEWAY_URL
