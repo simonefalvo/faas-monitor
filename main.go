@@ -15,6 +15,7 @@ type function struct {
 	Name         string           `json:"name"`
 	Replicas     int              `json:"replicas"`
 	ResponseTime float64          `json:"response_time"`
+	Throughput   float64          `json:"throughput"`
 	ColdStart    float64          `json:"cold_start"`
 	Cpu          map[string]int64 `json:"cpu"`
 	Mem          map[string]int64 `json:"mem"`
@@ -61,6 +62,12 @@ func main() {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s response time: %v", f.Name, f.ResponseTime)
+
+			f.Throughput, err = p.Throughput(f.Name, int64(scrapePeriod))
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+			log.Printf("%s Throughput: %v", f.Name, f.Throughput)
 
 			f.ColdStart, err = p.ColdStart(f.Name, int64(scrapePeriod))
 			if err != nil {

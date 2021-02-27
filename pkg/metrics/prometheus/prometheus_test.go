@@ -45,16 +45,17 @@ func TestFunctionReplicasEmpty(t *testing.T) {
 	}
 }
 
-func TestResponseTimeMicroservice(t *testing.T) {
+// test with a 2 seconds sleeping function
+func TestResponseTimeSleep(t *testing.T) {
 	name := "sleep"
 	sinceSeconds := int64(600)
-	want := 2.0
+	minTime := 2.0
 	got, err := ResponseTime(name, sinceSeconds)
 	if err != nil {
 		t.Errorf("Error occurred: %v\n", err)
 	}
-	if got < want {
-		t.Errorf("ResponseTime(%s) = %v, that is less than %v", name, got, want)
+	if got < minTime {
+		t.Errorf("ResponseTime(%s) = %v, that is less than %v", name, got, minTime)
 	}
 }
 
@@ -62,9 +63,9 @@ func TestResponseTimeMicroservice(t *testing.T) {
 func TestResponseTimeZero(t *testing.T) {
 	name := "figlet"
 	sinceSeconds := int64(600)
-	want := 0.0
+	minTime := 0.0
 	got, err := ResponseTime(name, sinceSeconds)
-	if got < want || err != nil {
+	if got < minTime || err != nil {
 		t.Errorf("ResponseTime(%s) = (%v, %v), want (<time>, nil)", name, got, err)
 	}
 }
@@ -86,5 +87,20 @@ func TestResponseTimeEmpty(t *testing.T) {
 	got, err := ResponseTime(name, sinceSeconds)
 	if got != 0 || err == nil {
 		t.Errorf(`ResponseTime("") = (%v, %v), want (0, error)`, got, err)
+	}
+}
+
+// test with a function that succeeded at least once
+func TestThroughput(t *testing.T) {
+	name := "nodeinfo"
+	sinceSeconds := int64(600)
+	got, err := Throughput(name, sinceSeconds)
+	minThr := 1.0 / float64(sinceSeconds)
+	if err != nil {
+		t.Errorf("Error occurred: %v\n", err)
+	}
+	if got < minThr {
+		// assuming that the invocation succeeded
+		t.Errorf("Throughput(%s) = %v, that is less than the minimum value %v", name, got, minThr)
 	}
 }

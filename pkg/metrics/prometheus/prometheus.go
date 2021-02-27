@@ -60,11 +60,6 @@ func FunctionReplicas(functionName string) (int, error) {
 
 func ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
 
-	if len(functionName) == 0 {
-		msg := "empty function name"
-		return 0, errors.New(msg)
-	}
-
 	q := fmt.Sprintf(
 		`sum by (function_name)`+
 			`(rate(gateway_functions_seconds_sum{function_name="%s.openfaas-fn"}[%ds]) > 0) `+
@@ -74,12 +69,7 @@ func ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
 		functionName, sinceSeconds, functionName, sinceSeconds,
 	)
 
-	stringResult, err := querySince(q, functionName, sinceSeconds)
-	if err != nil {
-		return 0, err
-	}
-
-	rt, err := util.ExtractValueBetween(stringResult, `=> `, ` @`)
+	rt, err := querySince(q, functionName, sinceSeconds)
 	if err != nil {
 		return 0, err
 	}
@@ -87,16 +77,42 @@ func ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
 	return rt, nil
 }
 
-func querySince(q, functionName string, sinceSeconds int64) (string, error) {
+func Throughput(functionName string, sinceSeconds int64) (float64, error) {
 
-	result, err := query(q)
-	if len(result) == 0 {
-		msg := fmt.Sprintf("function %s not invoked in the last %v seconds",
-			functionName, sinceSeconds)
-		return "", errors.New(msg)
+	q := fmt.Sprintf(
+		`sum by (function_name)`+
+			`(rate(gateway_function_invocation_total{code="200",function_name="%s.openfaas-fn"}[%ds]) > 0)`,
+		functionName, sinceSeconds,
+	)
+
+	thr, err := querySince(q, functionName, sinceSeconds)
+	if err != nil {
+		return 0, err
 	}
 
-	return result, err
+	return thr, nil
+}
+
+func querySince(q, functionName string, sinceSeconds int64) (float64, error) {
+
+	if len(functionName) == 0 {
+		msg := "empty function name"
+		return 0, errors.New(msg)
+	}
+
+	stringResult, err := query(q)
+	if len(stringResult) == 0 {
+		msg := fmt.Sprintf("function %s not invoked in the last %v seconds",
+			functionName, sinceSeconds)
+		return 0, errors.New(msg)
+	}
+
+	value, err := util.ExtractValueBetween(stringResult, `=> `, ` @`)
+	if err != nil {
+		return 0, err
+	}
+
+	return value, nil
 }
 
 func query(q string) (string, error) {

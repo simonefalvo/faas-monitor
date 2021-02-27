@@ -21,6 +21,10 @@ func (*FaasProvider) ResponseTime(functionName string, sinceSeconds int64) (floa
 	return prometheus.ResponseTime(functionName, sinceSeconds)
 }
 
+func (*FaasProvider) Throughput(functionName string, sinceSeconds int64) (float64, error) {
+	return prometheus.Throughput(functionName, sinceSeconds)
+}
+
 func (*FaasProvider) ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 	return apiserver.ColdStart(functionName, sinceSeconds)
 }
