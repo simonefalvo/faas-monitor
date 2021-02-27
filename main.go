@@ -12,11 +12,12 @@ import (
 )
 
 type function struct {
-	Name      string           `json:"name"`
-	Replicas  int              `json:"replicas"`
-	Cpu       map[string]int64 `json:"cpu"`
-	Mem       map[string]int64 `json:"mem"`
-	ColdStart float64          `json:"cold_start"`
+	Name         string           `json:"name"`
+	Replicas     int              `json:"replicas"`
+	ResponseTime float64          `json:"response_time"`
+	ColdStart    float64          `json:"cold_start"`
+	Cpu          map[string]int64 `json:"cpu"`
+	Mem          map[string]int64 `json:"mem"`
 }
 
 var scrapePeriod int
@@ -55,18 +56,24 @@ func main() {
 			}
 			log.Printf("%s replicas: %d\n", f.Name, f.Replicas)
 
-			f.Cpu, f.Mem, err = p.Top(f.Name)
+			f.ResponseTime, err = p.ResponseTime(f.Name, int64(scrapePeriod))
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
-			log.Printf("%s CPU usage: %s", f.Name, sPrintMap(f.Cpu))
-			log.Printf("%s memory usage: %s", f.Name, sPrintMap(f.Mem))
+			log.Printf("%s response time: %v", f.Name, f.ResponseTime)
 
 			f.ColdStart, err = p.ColdStart(f.Name, int64(scrapePeriod))
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s cold start time: %v", f.Name, f.ColdStart)
+
+			f.Cpu, f.Mem, err = p.Top(f.Name)
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+			log.Printf("%s CPU usage: %s", f.Name, sPrintMap(f.Cpu))
+			log.Printf("%s memory usage: %s", f.Name, sPrintMap(f.Mem))
 
 			// marshal to json
 			fjson, err := json.Marshal(f)
