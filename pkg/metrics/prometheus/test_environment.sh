@@ -6,11 +6,17 @@ export PROMETHEUS_URL
 echo "set PROMETHEUS_URL=$PROMETHEUS_URL"
 
 # deploy test functions
-faas-cli store deploy nodeinfo
+faas-cli store deploy nodeinfo \
+ --annotation prometheus.io.scrape=true \
+ --annotation prometheus.io.port=8081
 echo "function nodeinfo deployed"
-faas-cli store deploy figlet
+faas-cli store deploy figlet \
+ --annotation prometheus.io.scrape=true \
+ --annotation prometheus.io.port=8081
 echo "function figlet deployed"
-faas-cli store deploy sleep
+faas-cli store deploy sleep \
+ --annotation prometheus.io.scrape=true \
+ --annotation prometheus.io.port=8081
 echo "function sleep deployed"
 
 echo "test" | faas-cli invoke nodeinfo

@@ -90,6 +90,20 @@ func TestResponseTimeEmpty(t *testing.T) {
 	}
 }
 
+// test with a 2 seconds sleeping function
+func TestProcessingTimeSleep(t *testing.T) {
+	name := "sleep"
+	sinceSeconds := int64(600)
+	minTime := 2.0
+	got, err := ProcessingTime(name, sinceSeconds)
+	if err != nil {
+		t.Errorf("Error occurred: %v\n", err)
+	}
+	if got < minTime {
+		t.Errorf("ProcessingTime(%s) = %v, that is less than %v", name, got, minTime)
+	}
+}
+
 // test with a function that succeeded at least once
 func TestThroughput(t *testing.T) {
 	name := "nodeinfo"

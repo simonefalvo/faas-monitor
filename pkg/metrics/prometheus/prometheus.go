@@ -93,6 +93,25 @@ func Throughput(functionName string, sinceSeconds int64) (float64, error) {
 	return thr, nil
 }
 
+func ProcessingTime(functionName string, sinceSeconds int64) (float64, error) {
+
+	q := fmt.Sprintf(
+		`sum by (faas_function)`+
+			`(rate(http_request_duration_seconds_sum{faas_function="%s",code="200"}[%ds])>0)`+
+			`/`+
+			`sum by (faas_function)`+
+			`(rate(http_request_duration_seconds_count{faas_function="%s",code="200"}[%ds])>0)`,
+		functionName, sinceSeconds, functionName, sinceSeconds,
+	)
+
+	pt, err := querySince(q, functionName, sinceSeconds)
+	if err != nil {
+		return 0, err
+	}
+
+	return pt, nil
+}
+
 func querySince(q, functionName string, sinceSeconds int64) (float64, error) {
 
 	if len(functionName) == 0 {

@@ -11,6 +11,9 @@ type Provider interface {
 	// get function's average response time
 	ResponseTime(functionName string, sinceSeconds int64) (float64, error)
 
+	// get function's average processing time
+	ProcessingTime(functionName string, sinceSeconds int64) (float64, error)
+
 	// get function's throughput
 	Throughput(functionName string, sinceSeconds int64) (float64, error)
 
