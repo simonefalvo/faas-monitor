@@ -23,7 +23,7 @@ func TestFunctionReplicasZero(t *testing.T) {
 	want := 0
 	got, err := FunctionReplicas(name)
 	if got != want || err != nil {
-		t.Errorf("FunctionReplicas(%s) = (%d, %v), want (%d, nil)", name, err, got, want)
+		t.Errorf("FunctionReplicas(%s) = (%d, %v), want (%d, nil)", name, got, err, want)
 	}
 }
 
@@ -42,5 +42,49 @@ func TestFunctionReplicasEmpty(t *testing.T) {
 	got, err := FunctionReplicas(name)
 	if got != 0 || err == nil {
 		t.Errorf(`FunctionReplicas("") = (%d, %v), want (0, error)`, got, err)
+	}
+}
+
+func TestResponseTimeMicroservice(t *testing.T) {
+	name := "sleep"
+	sinceSeconds := int64(600)
+	want := 2.0
+	got, err := ResponseTime(name, sinceSeconds)
+	if err != nil {
+		t.Errorf("Error occurred: %v\n", err)
+	}
+	if got < want {
+		t.Errorf("ResponseTime(%s) = %v, that is less than %v", name, got, want)
+	}
+}
+
+// test with a function scaled to zero
+func TestResponseTimeZero(t *testing.T) {
+	name := "figlet"
+	sinceSeconds := int64(600)
+	want := 2.0
+	got, err := ResponseTime(name, sinceSeconds)
+	if got < want || err != nil {
+		t.Errorf("ResponseTime(%s) = (%v, %v), want (<time>, nil)", name, got, err)
+	}
+}
+
+// test with a not existing function
+func TestResponseTimeBad(t *testing.T) {
+	name := "missingFunction"
+	sinceSeconds := int64(600)
+	got, err := ResponseTime(name, sinceSeconds)
+	if got != 0 || err == nil {
+		t.Errorf("ResponseTime(%s) = (%v, %v), want (0, error)", name, got, err)
+	}
+}
+
+// test with an empty name
+func TestResponseTimeEmpty(t *testing.T) {
+	name := ""
+	sinceSeconds := int64(600)
+	got, err := ResponseTime(name, sinceSeconds)
+	if got != 0 || err == nil {
+		t.Errorf(`ResponseTime("") = (%v, %v), want (0, error)`, got, err)
 	}
 }

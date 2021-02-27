@@ -8,9 +8,12 @@ type Provider interface {
 	// get the function replicas' number
 	FunctionReplicas(functionName string) (int, error)
 
-	// get function's current CPU and memory usage for each replica
-	Top(functionName string) (map[string]int64, map[string]int64, error)
+	// get function's average response time
+	ResponseTime(functionName string, sinceSeconds int64) (float64, error)
 
 	// get function's cold start time
 	ColdStart(functionName string, SinceSeconds int64) (float64, error)
+
+	// get function's current CPU and memory usage for each replica
+	Top(functionName string) (map[string]int64, map[string]int64, error)
 }

@@ -17,10 +17,14 @@ func (*FaasProvider) FunctionReplicas(functionName string) (int, error) {
 	return prometheus.FunctionReplicas(functionName)
 }
 
-func (*FaasProvider) Top(functionName string) (map[string]int64, map[string]int64, error) {
-	return metricsserver.Top(functionName)
+func (*FaasProvider) ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
+	return prometheus.ResponseTime(functionName, sinceSeconds)
 }
 
 func (*FaasProvider) ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 	return apiserver.ColdStart(functionName, sinceSeconds)
+}
+
+func (*FaasProvider) Top(functionName string) (map[string]int64, map[string]int64, error) {
+	return metricsserver.Top(functionName)
 }
