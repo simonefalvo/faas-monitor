@@ -11,7 +11,7 @@ metadata:
   name: secret-pod-reader
 rules:
  - apiGroups: ["metrics.k8s.io"]
-   resources: ["pods"]
+   resources: ["pods", "nodes"]
    verbs: ["get", "watch", "list"]
  - apiGroups: [""] # "" indicates the core API group
    resources: ["secrets", "pods", "pods/log"]

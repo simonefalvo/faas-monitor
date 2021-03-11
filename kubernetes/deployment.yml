@@ -21,7 +21,7 @@ spec:
         imagePullPolicy: Always
         env:
           - name: SCRAPE_PERIOD
-            value: "20"
+            value: "60"
           - name: PROMETHEUS_URL
             value: "http://prometheus.openfaas:9090"
           - name: GATEWAY_URL

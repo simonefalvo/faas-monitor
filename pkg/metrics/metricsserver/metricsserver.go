@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/smvfal/faas-monitor/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	metrics "k8s.io/metrics/pkg/client/clientset/versioned"
@@ -27,7 +28,7 @@ func init() {
 	}
 }
 
-func Top(function string) (map[string]int64, map[string]int64, error) {
+func TopPods(function string) (map[string]int64, map[string]int64, error) {
 
 	cpu := make(map[string]int64)
 	mem := make(map[string]int64)
@@ -57,4 +58,23 @@ func Top(function string) (map[string]int64, map[string]int64, error) {
 	}
 
 	return cpu, mem, nil
+}
+
+func TopNodes() ([]types.Node, error) {
+
+	var nodes []types.Node
+
+	nodeMetrics, err := mc.MetricsV1beta1().NodeMetricses().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, nodeMetric := range nodeMetrics.Items {
+		nodeName := nodeMetric.Name
+		cpu := nodeMetric.Usage.Cpu().MilliValue()
+		mem := nodeMetric.Usage.Memory().Value()
+		nodes = append(nodes, types.Node{Name: nodeName, Cpu: cpu, Mem: mem})
+	}
+
+	return nodes, nil
 }

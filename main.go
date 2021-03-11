@@ -10,23 +10,8 @@ import (
 
 	"github.com/smvfal/faas-monitor/pkg/metrics"
 	"github.com/smvfal/faas-monitor/pkg/nats"
+	"github.com/smvfal/faas-monitor/pkg/types"
 )
-
-type function struct {
-	Name           string           `json:"name"`
-	Replicas       int              `json:"replicas"`
-	ResponseTime   float64          `json:"response_time"`
-	ProcessingTime float64          `json:"processing_time"`
-	Throughput     float64          `json:"throughput"`
-	ColdStart      float64          `json:"cold_start"`
-	Cpu            map[string]int64 `json:"cpu"`
-	Mem            map[string]int64 `json:"mem"`
-}
-
-type message struct {
-	Functions []function `json:"functions"`
-	Timestamp int64      `json:"timestamp"`
-}
 
 var scrapePeriod int
 
@@ -49,16 +34,17 @@ func main() {
 
 	for {
 
-		functions, err := p.Functions()
+		var functions []types.Function
+		var nodes []types.Node
+
+		functionNames, err := p.Functions()
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 
-		var functionlist []function
+		for _, fname := range functionNames {
 
-		for _, fname := range functions {
-
-			f := function{Name: fname}
+			f := types.Function{Name: fname}
 
 			f.Replicas, err = p.FunctionReplicas(f.Name)
 			if err != nil {
@@ -90,18 +76,27 @@ func main() {
 			}
 			log.Printf("%s cold start time: %v", f.Name, f.ColdStart)
 
-			f.Cpu, f.Mem, err = p.Top(f.Name)
+			f.Cpu, f.Mem, err = p.TopPods(f.Name)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s CPU usage: %s", f.Name, sPrintMap(f.Cpu))
 			log.Printf("%s memory usage: %s", f.Name, sPrintMap(f.Mem))
 
-			functionlist = append(functionlist, f)
+			functions = append(functions, f)
 
 		}
 
-		msg := message{Functions: functionlist, Timestamp: time.Now().Unix()}
+		nodes, err = p.TopNodes()
+		if err != nil {
+			log.Printf("WARNING: %s", err.Error())
+		}
+		for _, n := range nodes {
+			log.Printf("Node %s CPU usage: %v", n.Name, n.Cpu)
+			log.Printf("Node %s memory usage: %v", n.Name, n.Mem)
+		}
+
+		msg := types.Message{Functions: functions, Nodes: nodes, Timestamp: time.Now().Unix()}
 
 		fjson, err := json.Marshal(msg)
 		if err != nil {

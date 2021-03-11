@@ -5,6 +5,7 @@ import (
 	"github.com/smvfal/faas-monitor/pkg/metrics/gateway"
 	"github.com/smvfal/faas-monitor/pkg/metrics/metricsserver"
 	"github.com/smvfal/faas-monitor/pkg/metrics/prometheus"
+	"github.com/smvfal/faas-monitor/pkg/types"
 )
 
 type FaasProvider struct{}
@@ -33,6 +34,10 @@ func (*FaasProvider) ColdStart(functionName string, sinceSeconds int64) (float64
 	return apiserver.ColdStart(functionName, sinceSeconds)
 }
 
-func (*FaasProvider) Top(functionName string) (map[string]int64, map[string]int64, error) {
-	return metricsserver.Top(functionName)
+func (*FaasProvider) TopPods(functionName string) (map[string]int64, map[string]int64, error) {
+	return metricsserver.TopPods(functionName)
+}
+
+func (*FaasProvider) TopNodes() ([]types.Node, error) {
+	return metricsserver.TopNodes()
 }

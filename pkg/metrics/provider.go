@@ -1,5 +1,7 @@
 package metrics
 
+import "github.com/smvfal/faas-monitor/pkg/types"
+
 type Provider interface {
 
 	// get the names of the deployed functions
@@ -21,5 +23,8 @@ type Provider interface {
 	ColdStart(functionName string, SinceSeconds int64) (float64, error)
 
 	// get function's current CPU and memory usage for each replica
-	Top(functionName string) (map[string]int64, map[string]int64, error)
+	TopPods(functionName string) (map[string]int64, map[string]int64, error)
+
+	// get nodes current CPU and memory usage
+	TopNodes() ([]types.Node, error)
 }

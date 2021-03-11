@@ -75,7 +75,7 @@ func ColdStart(function string, sinceSeconds int64) (float64, error) {
 
 			err = podLogs.Close()
 			if err != nil {
-				return 0, nil
+				return 0, err
 			}
 		}
 	}
