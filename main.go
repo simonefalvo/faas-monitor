@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/smvfal/faas-monitor/pkg/metrics"
-	"github.com/smvfal/faas-monitor/pkg/nats"
 	"log"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/smvfal/faas-monitor/pkg/metrics"
+	"github.com/smvfal/faas-monitor/pkg/nats"
 )
 
 type function struct {
@@ -20,6 +21,11 @@ type function struct {
 	ColdStart      float64          `json:"cold_start"`
 	Cpu            map[string]int64 `json:"cpu"`
 	Mem            map[string]int64 `json:"mem"`
+}
+
+type message struct {
+	Functions []function `json:"functions"`
+	Timestamp int64      `json:"timestamp"`
 }
 
 var scrapePeriod int
@@ -47,6 +53,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+
+		var functionlist []function
 
 		for _, fname := range functions {
 
@@ -89,14 +97,18 @@ func main() {
 			log.Printf("%s CPU usage: %s", f.Name, sPrintMap(f.Cpu))
 			log.Printf("%s memory usage: %s", f.Name, sPrintMap(f.Mem))
 
-			// marshal to json
-			fjson, err := json.Marshal(f)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
+			functionlist = append(functionlist, f)
 
-			nats.Publish(fjson)
 		}
+
+		msg := message{Functions: functionlist, Timestamp: time.Now().Unix()}
+
+		fjson, err := json.Marshal(msg)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		nats.Publish(fjson)
 
 		time.Sleep(time.Duration(scrapePeriod) * time.Second)
 	}
