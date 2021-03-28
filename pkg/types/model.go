@@ -12,9 +12,9 @@ type Function struct {
 }
 
 type Node struct {
-	Name string `json:"name"`
-	Cpu  int64  `json:"cpu"`
-	Mem  int64  `json:"mem"`
+	Name string  `json:"name"`
+	Cpu  float64 `json:"cpu"`
+	Mem  float64 `json:"mem"`
 }
 
 type Message struct {

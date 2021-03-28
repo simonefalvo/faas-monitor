@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/smvfal/faas-monitor/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	metrics "k8s.io/metrics/pkg/client/clientset/versioned"
 	"log"
@@ -13,6 +14,7 @@ import (
 )
 
 var mc *metrics.Clientset
+var clientset *kubernetes.Clientset
 
 const namespace = "openfaas-fn"
 
@@ -23,6 +25,11 @@ func init() {
 		log.Fatal(err.Error())
 	}
 	mc, err = metrics.NewForConfig(config)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	// creates the clientset
+	clientset, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -71,8 +78,16 @@ func TopNodes() ([]types.Node, error) {
 
 	for _, nodeMetric := range nodeMetrics.Items {
 		nodeName := nodeMetric.Name
-		cpu := nodeMetric.Usage.Cpu().MilliValue()
-		mem := nodeMetric.Usage.Memory().Value()
+
+		node, err := clientset.CoreV1().Nodes().Get(context.TODO(), nodeName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		nodeCpuCapacity := node.Status.Capacity.Cpu().MilliValue()
+		nodeMemCapacity := node.Status.Capacity.Memory().Value()
+
+		cpu := float64(nodeMetric.Usage.Cpu().MilliValue()) / float64(nodeCpuCapacity)
+		mem := float64(nodeMetric.Usage.Memory().Value()) / float64(nodeMemCapacity)
 		nodes = append(nodes, types.Node{Name: nodeName, Cpu: cpu, Mem: mem})
 	}
 
