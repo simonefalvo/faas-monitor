@@ -7,6 +7,7 @@ utilization and more) and publish them to NATS included by default in OpenFaaS.
 ## Available metrics
 
 * Function number of replicas
+* Function invocation rate
 * Function average response time
 * Function average processing time
 * Function average cold start time

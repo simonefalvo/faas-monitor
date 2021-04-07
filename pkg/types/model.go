@@ -3,6 +3,7 @@ package types
 type Function struct {
 	Name           string           `json:"name"`
 	Replicas       int              `json:"replicas"`
+	InvocationRate float64          `json:"invocation_rate"`
 	ResponseTime   float64          `json:"response_time"`
 	ProcessingTime float64          `json:"processing_time"`
 	Throughput     float64          `json:"throughput"`

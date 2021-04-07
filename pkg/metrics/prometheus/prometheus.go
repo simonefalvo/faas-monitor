@@ -58,6 +58,20 @@ func FunctionReplicas(functionName string) (int, error) {
 	return int(replicas), err
 }
 
+func FunctionInvocationRate(functionName string, sinceSeconds int64) (float64, error) {
+
+	q := fmt.Sprintf(`sum by (function_name)`+
+		`(rate(gateway_function_invocation_total{function_name="%s.openfaas-fn"}[%ds]) > 0)`,
+		functionName, sinceSeconds)
+
+	ir, err := querySince(q, functionName, sinceSeconds)
+	if err != nil {
+		return 0, err
+	}
+
+	return ir, nil
+}
+
 func ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
 
 	q := fmt.Sprintf(
@@ -77,22 +91,6 @@ func ResponseTime(functionName string, sinceSeconds int64) (float64, error) {
 	return rt, nil
 }
 
-func Throughput(functionName string, sinceSeconds int64) (float64, error) {
-
-	q := fmt.Sprintf(
-		`sum by (function_name)`+
-			`(rate(gateway_function_invocation_total{code="200",function_name="%s.openfaas-fn"}[%ds]) > 0)`,
-		functionName, sinceSeconds,
-	)
-
-	thr, err := querySince(q, functionName, sinceSeconds)
-	if err != nil {
-		return 0, err
-	}
-
-	return thr, nil
-}
-
 func ProcessingTime(functionName string, sinceSeconds int64) (float64, error) {
 
 	q := fmt.Sprintf(
@@ -110,6 +108,22 @@ func ProcessingTime(functionName string, sinceSeconds int64) (float64, error) {
 	}
 
 	return pt, nil
+}
+
+func Throughput(functionName string, sinceSeconds int64) (float64, error) {
+
+	q := fmt.Sprintf(
+		`sum by (function_name)`+
+			`(rate(gateway_function_invocation_total{code="200",function_name="%s.openfaas-fn"}[%ds]) > 0)`,
+		functionName, sinceSeconds,
+	)
+
+	thr, err := querySince(q, functionName, sinceSeconds)
+	if err != nil {
+		return 0, err
+	}
+
+	return thr, nil
 }
 
 func querySince(q, functionName string, sinceSeconds int64) (float64, error) {

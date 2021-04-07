@@ -1,3 +1,6 @@
+// Prometheus test module
+// Shell script test_environment in this directory can help to execute these tests as a minikube cluster,
+// In this case remember to deploy Prometheus as a Service in order to access the exposed metrics.
 package prometheus
 
 import (
@@ -116,5 +119,20 @@ func TestThroughput(t *testing.T) {
 	if got < minThr {
 		// assuming that the invocation succeeded
 		t.Errorf("Throughput(%s) = %v, that is less than the minimum value %v", name, got, minThr)
+	}
+}
+
+// test with a function that has been invoked at least once
+func TestFunctionInvocationRate(t *testing.T) {
+	name := "nodeinfo"
+	sinceSeconds := int64(600)
+	got, err := FunctionInvocationRate(name, sinceSeconds)
+	minRate := 1.0 / float64(sinceSeconds)
+	if err != nil {
+		t.Errorf("Error occurred: %v\n", err)
+	}
+	if got < minRate {
+		// assuming that the invocation succeeded
+		t.Errorf("FunctionInvocationRate(%s) = %v, that is less than the minimum value %v", name, got, minRate)
 	}
 }

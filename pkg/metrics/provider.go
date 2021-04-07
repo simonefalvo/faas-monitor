@@ -10,6 +10,9 @@ type Provider interface {
 	// get the function replicas' number
 	FunctionReplicas(functionName string) (int, error)
 
+	// get the function invocation rate
+	FunctionInvocationRate(functionName string, sinceSeconds int64) (float64, error)
+
 	// get function's average response time
 	ResponseTime(functionName string, sinceSeconds int64) (float64, error)
 

@@ -13,7 +13,7 @@ import (
 	"github.com/smvfal/faas-monitor/pkg/types"
 )
 
-var scrapePeriod int
+var scrapePeriod int64
 
 func init() {
 	env, ok := os.LookupEnv("SCRAPE_PERIOD")
@@ -21,10 +21,11 @@ func init() {
 		log.Fatal("$SCRAPE_PERIOD not set")
 	}
 	var err error
-	scrapePeriod, err = strconv.Atoi(env)
+	val, err := strconv.Atoi(env)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	scrapePeriod = int64(val)
 }
 
 func main() {
@@ -52,25 +53,31 @@ func main() {
 			}
 			log.Printf("%s replicas: %d\n", f.Name, f.Replicas)
 
-			f.ResponseTime, err = p.ResponseTime(f.Name, int64(scrapePeriod))
+			f.InvocationRate, err = p.FunctionInvocationRate(f.Name, scrapePeriod)
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+			log.Printf("%s invocation rate: %d\n", f.Name, f.InvocationRate)
+
+			f.ResponseTime, err = p.ResponseTime(f.Name, scrapePeriod)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s response time: %v", f.Name, f.ResponseTime)
 
-			f.ProcessingTime, err = p.ProcessingTime(f.Name, int64(scrapePeriod))
+			f.ProcessingTime, err = p.ProcessingTime(f.Name, scrapePeriod)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s processing time: %v", f.Name, f.ProcessingTime)
 
-			f.Throughput, err = p.Throughput(f.Name, int64(scrapePeriod))
+			f.Throughput, err = p.Throughput(f.Name, scrapePeriod)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
 			log.Printf("%s Throughput: %v", f.Name, f.Throughput)
 
-			f.ColdStart, err = p.ColdStart(f.Name, int64(scrapePeriod))
+			f.ColdStart, err = p.ColdStart(f.Name, scrapePeriod)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
@@ -98,12 +105,12 @@ func main() {
 
 		msg := types.Message{Functions: functions, Nodes: nodes, Timestamp: time.Now().Unix()}
 
-		fjson, err := json.Marshal(msg)
+		jsonMsg, err := json.Marshal(msg)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 
-		nats.Publish(fjson)
+		nats.Publish(jsonMsg)
 
 		time.Sleep(time.Duration(scrapePeriod) * time.Second)
 	}
