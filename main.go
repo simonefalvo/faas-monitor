@@ -57,7 +57,7 @@ func main() {
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())
 			}
-			log.Printf("%s invocation rate: %d\n", f.Name, f.InvocationRate)
+			log.Printf("%s invocation rate: %v\n", f.Name, f.InvocationRate)
 
 			f.ResponseTime, err = p.ResponseTime(f.Name, scrapePeriod)
 			if err != nil {
@@ -116,10 +116,10 @@ func main() {
 	}
 }
 
-func sPrintMap(m map[string]int64) string {
+func sPrintMap(m map[string]float64) string {
 	s := ""
 	for key, val := range m {
-		s += fmt.Sprintf("\n%s: %d", key, val)
+		s += fmt.Sprintf("\n%s: %v", key, val)
 	}
 	return s
 }
