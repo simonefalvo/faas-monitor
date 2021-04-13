@@ -29,11 +29,9 @@ func init() {
 	}
 }
 
-func ColdStart(function string, sinceSeconds int64) (float64, error) {
+func ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 
-	re := regexp.MustCompile("gateway")
-
-	scaleLine := fmt.Sprintf(`\[Scale\] function=%s 0 => 1 successful`, function)
+	scaleLine := fmt.Sprintf(`\[Scale\] function=%s 0 => 1 successful`, functionName)
 	scaleRe := regexp.MustCompile(scaleLine)
 	var scaleSum, scaleCount float64
 
@@ -42,41 +40,42 @@ func ColdStart(function string, sinceSeconds int64) (float64, error) {
 		SinceSeconds: &sinceSeconds,
 	}
 
-	pods, err := clientset.CoreV1().Pods("openfaas").List(context.TODO(), metav1.ListOptions{})
+	listOptions := metav1.ListOptions{LabelSelector: "app=gateway"}
+	pods, err := clientset.CoreV1().Pods("openfaas").List(context.TODO(), listOptions)
 	if err != nil {
 		return 0, err
 	}
 
 	for _, pod := range pods.Items {
+
 		podName := pod.Name
-		if re.MatchString(podName) { // match gateway pod
-			req := clientset.CoreV1().Pods("openfaas").GetLogs(podName, &podLogOpts)
-			podLogs, err := req.Stream(context.TODO())
-			if err != nil {
-				return 0, err
-			}
 
-			scanner := bufio.NewScanner(podLogs)
-			for scanner.Scan() {
-				line := scanner.Text()
-				if scaleRe.MatchString(line) { // match scale line
-					val, err := util.ExtractValueBetween(line, `- `, `s`)
-					if err != nil {
-						return 0, err
-					}
-					scaleSum += val
-					scaleCount++
+		req := clientset.CoreV1().Pods("openfaas").GetLogs(podName, &podLogOpts)
+		podLogs, err := req.Stream(context.TODO())
+		if err != nil {
+			return 0, err
+		}
+
+		scanner := bufio.NewScanner(podLogs)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if scaleRe.MatchString(line) { // match scale line
+				val, err := util.ExtractValueBetween(line, `- `, `s`)
+				if err != nil {
+					return 0, err
 				}
+				scaleSum += val
+				scaleCount++
 			}
-			err = scanner.Err()
-			if err != nil {
-				return 0, err
-			}
+		}
+		err = scanner.Err()
+		if err != nil {
+			return 0, err
+		}
 
-			err = podLogs.Close()
-			if err != nil {
-				return 0, err
-			}
+		err = podLogs.Close()
+		if err != nil {
+			return 0, err
 		}
 	}
 

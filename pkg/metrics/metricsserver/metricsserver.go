@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/rest"
 	metrics "k8s.io/metrics/pkg/client/clientset/versioned"
 	"log"
-	"regexp"
 )
 
 var mc *metrics.Clientset
@@ -35,13 +34,15 @@ func init() {
 	}
 }
 
-func TopPods(function string) (map[string]float64, map[string]float64, error) {
+func TopPods(functionName string) (map[string]float64, map[string]float64, error) {
 
 	cpu := make(map[string]float64)
 	mem := make(map[string]float64)
-	re := regexp.MustCompile(function)
 
-	podMetrics, err := mc.MetricsV1beta1().PodMetricses(namespace).List(context.TODO(), metav1.ListOptions{})
+	listOptions := metav1.ListOptions{
+		LabelSelector: "faas_function=" + functionName,
+	}
+	podMetrics, err := mc.MetricsV1beta1().PodMetricses(namespace).List(context.TODO(), listOptions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -54,36 +55,35 @@ func TopPods(function string) (map[string]float64, map[string]float64, error) {
 			return nil, nil, err
 		}
 
-		if re.MatchString(podName) {
-			podContainers := podMetric.Containers
-			cpu[podName] = 0 // initialize cpu counter
-			mem[podName] = 0 // initialize mem counter
-			containersCount := 0
-			for i, container := range podContainers {
+		podContainers := podMetric.Containers
+		cpu[podName] = 0 // initialize cpu counter
+		mem[podName] = 0 // initialize mem counter
+		containersCount := 0
 
-				containerCpuLimits := float64(pod.Spec.Containers[i].Resources.Limits.Cpu().MilliValue())
-				containerMemLimits := float64(pod.Spec.Containers[i].Resources.Limits.Memory().Value())
-				if containerCpuLimits == 0 {
-					return nil, nil, errors.New("cpu limits not specified")
-				}
-				if containerCpuLimits == 0 {
-					return nil, nil, errors.New("memory limits not specified")
-				}
+		for i, container := range podContainers {
 
-				containerCpuUsage := float64(container.Usage.Cpu().MilliValue())
-				containerMemUsage := float64(container.Usage.Memory().Value())
-				cpu[podName] += containerCpuUsage / containerCpuLimits // add container cpu usage percentage
-				mem[podName] += containerMemUsage / containerMemLimits // add container memory usage percentage
-				containersCount = i + 1
+			containerCpuLimits := float64(pod.Spec.Containers[i].Resources.Limits.Cpu().MilliValue())
+			containerMemLimits := float64(pod.Spec.Containers[i].Resources.Limits.Memory().Value())
+			if containerCpuLimits == 0 {
+				return nil, nil, errors.New("cpu limits not specified")
 			}
-			// get average percentage of usage between pod's containers
-			cpu[podName] /= float64(containersCount)
-			mem[podName] /= float64(containersCount)
+			if containerCpuLimits == 0 {
+				return nil, nil, errors.New("memory limits not specified")
+			}
+
+			containerCpuUsage := float64(container.Usage.Cpu().MilliValue())
+			containerMemUsage := float64(container.Usage.Memory().Value())
+			cpu[podName] += containerCpuUsage / containerCpuLimits // add container cpu usage percentage
+			mem[podName] += containerMemUsage / containerMemLimits // add container memory usage percentage
+			containersCount = i + 1
 		}
+		// get average percentage of usage between pod's containers
+		cpu[podName] /= float64(containersCount)
+		mem[podName] /= float64(containersCount)
 	}
 
 	if len(cpu) == 0 {
-		msg := fmt.Sprintf("Function %s not found for resources utilization", function)
+		msg := fmt.Sprintf("Function %s not found for resources utilization", functionName)
 		return cpu, mem, errors.New(msg)
 	}
 
