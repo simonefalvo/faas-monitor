@@ -15,6 +15,17 @@ import (
 
 var v1api v1.API
 
+type IdleError struct {
+	Function string
+	Period   int64
+}
+
+func (e *IdleError) Error() string {
+	return fmt.Sprintf(
+		"function %s has been idle in the last %v seconds",
+		e.Function, e.Period)
+}
+
 func init() {
 	prometheusUrl, ok := os.LookupEnv("PROMETHEUS_URL")
 	if !ok {
@@ -135,9 +146,7 @@ func querySince(q, functionName string, sinceSeconds int64) (float64, error) {
 
 	stringResult, err := query(q)
 	if len(stringResult) == 0 {
-		msg := fmt.Sprintf("function %s not invoked in the last %v seconds",
-			functionName, sinceSeconds)
-		return 0, errors.New(msg)
+		return 0, &IdleError{Function: functionName, Period: sinceSeconds}
 	}
 
 	value, err := util.ExtractValueBetween(stringResult, `=> `, ` @`)
