@@ -84,7 +84,7 @@ func TopPods(functionName string) (map[string]float64, map[string]float64, error
 
 	if len(cpu) == 0 {
 		msg := fmt.Sprintf("Function %s not found for resources utilization", functionName)
-		return cpu, mem, errors.New(msg)
+		return nil, nil, errors.New(msg)
 	}
 
 	return cpu, mem, nil
