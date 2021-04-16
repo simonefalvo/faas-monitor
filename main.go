@@ -105,7 +105,7 @@ func main() {
 
 		msg := types.Message{Functions: functions, Nodes: nodes, Timestamp: time.Now().Unix()}
 
-		jsonMsg, err := json.Marshal(msg)
+		jsonMsg, err := json.MarshalIndent(msg, "", "  ")
 		if err != nil {
 			log.Fatal(err.Error())
 		}
