@@ -20,5 +20,8 @@ vendor:
 build:
 	go build -o bin/${BINARY_NAME}
 
+fmt:
+	gofmt -l -d $(shell find . -type f -name '*.go' -not -path "./vendor/*")
+
 clean:
 	rm -rf vendor/ bin/
