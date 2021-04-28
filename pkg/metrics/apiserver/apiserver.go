@@ -85,3 +85,21 @@ func ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 
 	return scaleSum / scaleCount, nil
 }
+
+func FunctionsInNode(nodeName string) ([]string, error) {
+
+	options := metav1.ListOptions{
+		FieldSelector: "spec.nodeName=" + nodeName + ",metadata.namespace=openfaas-fn",
+	}
+	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), options)
+	if err != nil {
+		return nil, err
+	}
+
+	var functions []string
+	for _, pod := range pods.Items {
+		functions = append(functions, pod.GetName())
+	}
+
+	return functions, nil
+}

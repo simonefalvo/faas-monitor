@@ -98,9 +98,18 @@ func main() {
 		if err != nil {
 			log.Printf("WARNING: %s", err.Error())
 		}
+
 		for _, n := range nodes {
-			log.Printf("Node %s CPU usage: %v", n.Name, n.Cpu)
-			log.Printf("Node %s memory usage: %v", n.Name, n.Mem)
+			nodeName := n.Name
+
+			n.Functions, err = p.FunctionsInNode(nodeName)
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+
+			log.Printf("Node %s functions: %v", nodeName, n.Functions)
+			log.Printf("Node %s CPU usage: %v", nodeName, n.Cpu)
+			log.Printf("Node %s memory usage: %v", nodeName, n.Mem)
 		}
 
 		msg := types.Message{Functions: functions, Nodes: nodes, Timestamp: time.Now().Unix()}

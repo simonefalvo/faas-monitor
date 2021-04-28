@@ -30,4 +30,7 @@ type Provider interface {
 
 	// TopNodes provides nodes current CPU and memory percentage usage
 	TopNodes() ([]types.Node, error)
+
+	// FunctionsInNode returns functions' instances of a node
+	FunctionsInNode(nodeName string) ([]string, error)
 }

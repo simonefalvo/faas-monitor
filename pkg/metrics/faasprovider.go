@@ -45,3 +45,7 @@ func (*FaasProvider) TopPods(functionName string) (map[string]float64, map[strin
 func (*FaasProvider) TopNodes() ([]types.Node, error) {
 	return metricsserver.TopNodes()
 }
+
+func (*FaasProvider) FunctionsInNode(nodeName string) ([]string, error) {
+	return apiserver.FunctionsInNode(nodeName)
+}
