@@ -21,7 +21,7 @@ spec:
         imagePullPolicy: Always
         env:
           - name: SCRAPE_PERIOD
-            value: "60"
+            value: "10"
           - name: PROMETHEUS_URL
             value: "http://prometheus.openfaas:9090"
           - name: GATEWAY_URL
@@ -30,3 +30,5 @@ spec:
             value: "http://nats.openfaas:4222"
           - name: NATS_SUBJECT
             value: "metrics"
+      nodeSelector:
+        faasRole: controller
