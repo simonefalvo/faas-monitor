@@ -99,7 +99,7 @@ func main() {
 			log.Printf("WARNING: %s", err.Error())
 		}
 
-		for _, n := range nodes {
+		for i, n := range nodes {
 			nodeName := n.Name
 
 			n.Functions, err = p.FunctionsInNode(nodeName)
@@ -110,6 +110,9 @@ func main() {
 			log.Printf("Node %s functions: %v", nodeName, n.Functions)
 			log.Printf("Node %s CPU usage: %v", nodeName, n.Cpu)
 			log.Printf("Node %s memory usage: %v", nodeName, n.Mem)
+
+			// update the node
+			nodes[i] = n
 		}
 
 		msg := types.Message{Functions: functions, Nodes: nodes, Timestamp: time.Now().Unix()}
