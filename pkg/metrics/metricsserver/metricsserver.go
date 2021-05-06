@@ -56,6 +56,10 @@ func TopPods(functionName string) (map[string]float64, map[string]float64, error
 		}
 
 		podContainers := podMetric.Containers
+		if len(podContainers) == 0 {
+			// containers still not available
+			continue
+		}
 		cpu[podName] = 0 // initialize cpu counter
 		mem[podName] = 0 // initialize mem counter
 		containersCount := 0
