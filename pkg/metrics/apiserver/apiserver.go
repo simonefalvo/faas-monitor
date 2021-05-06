@@ -103,3 +103,21 @@ func FunctionsInNode(nodeName string) ([]string, error) {
 
 	return functions, nil
 }
+
+func FunctionNodes(functionName string) ([]string, error) {
+
+	options := metav1.ListOptions{
+		LabelSelector: "faas_function=" + functionName,
+	}
+	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), options)
+	if err != nil {
+		return nil, err
+	}
+
+	var nodes []string
+	for _, pod := range pods.Items {
+		nodes = append(nodes, pod.Spec.NodeName)
+	}
+
+	return nodes, nil
+}

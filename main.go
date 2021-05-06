@@ -83,6 +83,12 @@ func main() {
 			}
 			log.Printf("%s cold start time: %v", f.Name, f.ColdStart)
 
+			f.Nodes, err = p.FunctionNodes(f.Name)
+			if err != nil {
+				log.Printf("WARNING: %s", err.Error())
+			}
+			log.Printf("%s nodes: %v", f.Name, f.Nodes)
+
 			f.Cpu, f.Mem, err = p.TopPods(f.Name)
 			if err != nil {
 				log.Printf("WARNING: %s", err.Error())

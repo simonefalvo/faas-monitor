@@ -33,4 +33,7 @@ type Provider interface {
 
 	// FunctionsInNode returns functions' instances of a node
 	FunctionsInNode(nodeName string) ([]string, error)
+
+	// FunctionNodes returns the nodes in which the function is deployed
+	FunctionNodes(functionName string) ([]string, error)
 }

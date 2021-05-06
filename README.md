@@ -12,6 +12,7 @@ utilization and more) and publish them to NATS included by default in OpenFaaS.
 * Function average processing time
 * Function average cold start time
 * Function throughput
+* Function nodes
 * Per replica CPU utilization
 * Per replica memory utilization
 

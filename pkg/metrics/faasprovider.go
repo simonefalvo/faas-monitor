@@ -49,3 +49,7 @@ func (*FaasProvider) TopNodes() ([]types.Node, error) {
 func (*FaasProvider) FunctionsInNode(nodeName string) ([]string, error) {
 	return apiserver.FunctionsInNode(nodeName)
 }
+
+func (*FaasProvider) FunctionNodes(functionName string) ([]string, error) {
+	return apiserver.FunctionNodes(functionName)
+}
