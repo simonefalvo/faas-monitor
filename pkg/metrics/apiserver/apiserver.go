@@ -40,7 +40,10 @@ func ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 		SinceSeconds: &sinceSeconds,
 	}
 
-	listOptions := metav1.ListOptions{LabelSelector: "app=gateway"}
+	listOptions := metav1.ListOptions{
+		LabelSelector: "app=gateway",
+		FieldSelector: "status.phase=Running",
+	}
 	pods, err := clientset.CoreV1().Pods("openfaas").List(context.TODO(), listOptions)
 	if err != nil {
 		return 0, err
@@ -89,7 +92,9 @@ func ColdStart(functionName string, sinceSeconds int64) (float64, error) {
 func FunctionsInNode(nodeName string) ([]string, error) {
 
 	options := metav1.ListOptions{
-		FieldSelector: "spec.nodeName=" + nodeName + ",metadata.namespace=openfaas-fn",
+		FieldSelector: "spec.nodeName=" + nodeName +
+			",metadata.namespace=openfaas-fn" +
+			",status.phase=Running",
 	}
 	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), options)
 	if err != nil {
@@ -108,6 +113,7 @@ func FunctionNodes(functionName string) ([]string, error) {
 
 	options := metav1.ListOptions{
 		LabelSelector: "faas_function=" + functionName,
+		FieldSelector: "status.phase=Running",
 	}
 	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), options)
 	if err != nil {
